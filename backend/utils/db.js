@@ -7,7 +7,7 @@ const connectDB = async (retries = 5) => {
     }
     
     const conn = await mongoose.connect(process.env.MONGO_URI, {
-      serverSelectionTimeoutMS: 5000,
+      serverSelectionTimeoutMS: 30000,
       socketTimeoutMS: 45000,
     });
     console.log(`💾 MongoDB Connected: ${conn.connection.host}`);
