@@ -65,7 +65,7 @@ function App() {
 
   useEffect(() => {
     if (user) {
-      const socketio = io('http://localhost:8081', {
+      const socketio = io(import.meta.env.VITE_BACKEND_URL || 'http://localhost:8081', {
         query: {
           userId: user?._id
         },

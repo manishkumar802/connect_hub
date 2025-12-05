@@ -73,10 +73,10 @@ npm install
 
 ### 4. Environment Variables
 
-Backend `.env` file is already configured:
+Backend `.env` file is already configured with MongoDB Atlas:
 ```env
 PORT=8081
-MONGO_URI=mongodb://127.0.0.1:27017/connecthub
+MONGO_URI=mongodb+srv://instagramuser:odiJoKSCVq96rtcA@instagram-clone.tncychp.mongodb.net/connecthub?retryWrites=true&w=majority
 SECRET_KEY=SDJVIFSDJVOIJKKVKA
 API_KEY=725479154796424
 API_SECRET=mNunqF3rX3e8y_KNsR-ILej57hA
@@ -117,25 +117,18 @@ npm run dev
 
 ## 📊 Database Setup
 
-### Local MongoDB (Recommended for Development)
+### MongoDB Atlas (Cloud Database)
 
-1. **Make sure MongoDB is running:**
-```bash
-sc query MongoDB
-```
+The application is configured to use MongoDB Atlas cloud database:
+- Database: `connecthub`
+- Collections: users, posts, comments, messages, conversations
+- Connection string is already configured in `backend/.env`
 
-2. **View Data in MongoDB Compass:**
-   - Download: https://www.mongodb.com/try/download/compass
-   - Connect to: `mongodb://127.0.0.1:27017`
-   - Database: `connecthub`
-   - Collections: users, posts, comments, messages, conversations
-
-### MongoDB Atlas (Cloud)
-
-To use cloud database, edit `backend/.env`:
-```env
-MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/connecthub
-```
+**To use your own Atlas cluster:**
+1. Create account at https://cloud.mongodb.com
+2. Create new cluster
+3. Get connection string
+4. Update `MONGO_URI` in `backend/.env`
 
 ---
 
@@ -307,14 +300,11 @@ taskkill /f /pid [PID]
 RESTART-ALL.bat
 ```
 
-### MongoDB connection failed
-```bash
-# Check if MongoDB is running
-sc query MongoDB
-
-# Start MongoDB service (as Administrator)
-net start MongoDB
-```
+### MongoDB Atlas connection failed
+- Check internet connection
+- Verify Atlas cluster is running
+- Check connection string in `.env`
+- Ensure IP address is whitelisted in Atlas
 
 ### Login/Logout issues
 - Clear browser cookies
@@ -408,7 +398,7 @@ ISC
 2. Frontend: Create component → Add to routes → Connect to Redux
 
 ### Testing
-1. Use MongoDB Compass to view database
+1. Use MongoDB Atlas web interface to view database
 2. Use browser DevTools for debugging
 3. Check backend console for logs
 4. Use Postman for API testing
@@ -448,7 +438,7 @@ For issues:
 
 ### Backend Running:
 ```
-💾 MongoDB Connected: 127.0.0.1
+💾 MongoDB Atlas Connected
 ✅ Server running on port 8081
 🌐 API URL: http://localhost:8081
 📱 Health check: http://localhost:8081/health
