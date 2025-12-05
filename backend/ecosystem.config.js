@@ -1,13 +1,16 @@
-// PM2 Configuration for Production
 module.exports = {
   apps: [{
-    name: 'instagram-backend',
-    script: './index.js',
+    name: 'connect_backend',
+    script: 'index.js',
     instances: 1,
-    exec_mode: 'fork',
+    autorestart: true,
     watch: false,
-    max_memory_restart: '500M',
+    max_memory_restart: '1G',
     env: {
+      NODE_ENV: 'development',
+      PORT: 8081
+    },
+    env_production: {
       NODE_ENV: 'production',
       PORT: 8081
     },

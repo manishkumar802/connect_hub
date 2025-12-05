@@ -1,9 +1,18 @@
 {
-  "watch": ["*.js", "**/*.js"],
+  "watch": ["."],
   "ext": "js,json",
-  "ignore": ["node_modules/", "*.log"],
+  "ignore": [
+    "node_modules/", 
+    "*.log", 
+    "logs/",
+    ".git/",
+    "dist/",
+    "build/"
+  ],
   "env": {
     "NODE_ENV": "development"
   },
-  "delay": "1000"
+  "delay": "2000",
+  "verbose": true,
+  "restartable": "rs"
 }

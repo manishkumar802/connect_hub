@@ -6,7 +6,9 @@
   "type": "module",
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "debug": "node start-debug.js",
+    "test": "node test-server.js"
   },
   "keywords": [],
   "author": "",

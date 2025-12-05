@@ -4,11 +4,11 @@ import jwt from "jsonwebtoken";
 import getDataUri from "../utils/datauri.js";
 import cloudinary from "../utils/cloudinary.js";
 import { Post } from "../models/post.model.js";
+
 export const register = async (req, res) => {
     try {
         const { username, email, password } = req.body;
         
-        // Validation
         if (!username || !email || !password) {
             return res.status(400).json({
                 message: "All fields are required!",
@@ -16,14 +16,6 @@ export const register = async (req, res) => {
             });
         }
         
-        if (password.length < 6) {
-            return res.status(400).json({
-                message: "Password must be at least 6 characters long",
-                success: false,
-            });
-        }
-        
-        // Check if user already exists
         const existingUser = await User.findOne({ 
             $or: [{ email }, { username }] 
         });
@@ -36,7 +28,7 @@ export const register = async (req, res) => {
         }
         
         const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = await User.create({
+        await User.create({
             username: username.toLowerCase(),
             email: email.toLowerCase(),
             password: hashedPassword
@@ -53,7 +45,8 @@ export const register = async (req, res) => {
             success: false
         });
     }
-}
+};
+
 export const login = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -81,18 +74,18 @@ export const login = async (req, res) => {
             });
         }
 
-        const token = await jwt.sign({ userId: user._id }, process.env.SECRET_KEY, { expiresIn: '1d' });
+        const token = jwt.sign({ userId: user._id }, process.env.SECRET_KEY, { expiresIn: '1d' });
 
-        // populate each post if in the posts array
         const populatedPosts = await Promise.all(
-            user.posts.map( async (postId) => {
+            user.posts.map(async (postId) => {
                 const post = await Post.findById(postId);
-                if(post && post.author.equals(user._id)){
+                if (post && post.author.equals(user._id)) {
                     return post;
                 }
                 return null;
             })
-        ).then(posts => posts.filter(post => post !== null))
+        ).then(posts => posts.filter(post => post !== null));
+
         user = {
             _id: user._id,
             username: user.username,
@@ -102,12 +95,13 @@ export const login = async (req, res) => {
             followers: user.followers,
             following: user.following,
             posts: populatedPosts
-        }
+        };
+
         return res.cookie('token', token, { 
             httpOnly: true, 
             sameSite: 'lax', 
             maxAge: 1 * 24 * 60 * 60 * 1000,
-            secure: false
+            secure: process.env.NODE_ENV === 'production'
         }).json({
             message: `Welcome back ${user.username}`,
             success: true,
@@ -122,12 +116,13 @@ export const login = async (req, res) => {
         });
     }
 };
+
 export const logout = async (_, res) => {
     try {
         return res.clearCookie("token", {
             httpOnly: true,
             sameSite: 'lax',
-            secure: false
+            secure: process.env.NODE_ENV === 'production'
         }).json({
             message: 'Logged out successfully.',
             success: true
@@ -140,10 +135,11 @@ export const logout = async (_, res) => {
         });
     }
 };
+
 export const getProfile = async (req, res) => {
     try {
         const userId = req.params.id;
-        let user = await User.findById(userId).populate({path:'posts', options: {sort: {createdAt:-1}}}).populate('bookmarks');
+        let user = await User.findById(userId).populate({ path: 'posts', options: { sort: { createdAt: -1 } } }).populate('bookmarks');
         return res.status(200).json({
             user,
             success: true
@@ -175,7 +171,8 @@ export const editProfile = async (req, res) => {
                 message: 'User not found.',
                 success: false
             });
-        };
+        }
+
         if (bio) user.bio = bio;
         if (gender) user.gender = gender;
         if (profilePicture) user.profilePicture = cloudResponse.secure_url;
@@ -196,6 +193,7 @@ export const editProfile = async (req, res) => {
         });
     }
 };
+
 export const getSuggestedUsers = async (req, res) => {
     try {
         const currentUser = await User.findById(req.id).select('following');
@@ -207,17 +205,10 @@ export const getSuggestedUsers = async (req, res) => {
             } 
         }).select("-password").limit(5);
         
-        if (!suggestedUsers || suggestedUsers.length === 0) {
-            return res.status(200).json({
-                success: true,
-                users: []
-            })
-        };
-        
         return res.status(200).json({
             success: true,
             users: suggestedUsers
-        })
+        });
     } catch (error) {
         console.log(error);
         return res.status(500).json({
@@ -226,10 +217,12 @@ export const getSuggestedUsers = async (req, res) => {
         });
     }
 };
+
 export const followOrUnfollow = async (req, res) => {
     try {
         const followKrneWala = req.id;
         const jiskoFollowKrunga = req.params.id;
+        
         if (followKrneWala === jiskoFollowKrunga) {
             return res.status(400).json({
                 message: 'You cannot follow/unfollow yourself',
@@ -249,30 +242,16 @@ export const followOrUnfollow = async (req, res) => {
         
         const isFollowing = targetUser.followers.includes(followKrneWala);
         if (isFollowing) {
-            // unfollow
             await Promise.all([
                 User.updateOne({ _id: followKrneWala }, { $pull: { following: jiskoFollowKrunga } }),
                 User.updateOne({ _id: jiskoFollowKrunga }, { $pull: { followers: followKrneWala } }),
-            ])
+            ]);
             return res.status(200).json({ message: 'Unfollowed successfully', success: true });
         } else {
-            // follow
             await Promise.all([
                 User.updateOne({ _id: followKrneWala }, { $push: { following: jiskoFollowKrunga } }),
                 User.updateOne({ _id: jiskoFollowKrunga }, { $push: { followers: followKrneWala } }),
-            ])
-            
-            // Send notification via socket
-            const { getReceiverSocketId, io } = await import('../socket/socket.js');
-            const targetSocketId = getReceiverSocketId(jiskoFollowKrunga);
-            if (targetSocketId) {
-                io.to(targetSocketId).emit('notification', {
-                    type: 'follow',
-                    userId: followKrneWala,
-                    userDetails: user,
-                    message: `${user.username} started following you`
-                });
-            }
+            ]);
             
             return res.status(200).json({ message: 'followed successfully', success: true });
         }
@@ -283,4 +262,4 @@ export const followOrUnfollow = async (req, res) => {
             success: false
         });
     }
-}
+};
