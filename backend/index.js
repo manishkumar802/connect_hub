@@ -21,13 +21,16 @@ const allowedOrigins = [
     'http://localhost:3000',
     'http://localhost:5173', 
     'https://connecthub-socialmedia.netlify.app',
-    'https://connect-hub-0rwk.onrender.com'
-];
+    'https://connect-hub-0rwk.onrender.com',
+    process.env.FRONTEND_URL
+].filter(Boolean);
 
 const corsOptions = {
     origin: (origin, callback) => {
-        if (!origin) return callback(null, true); // allow non-browser requests
+        console.log('Request from origin:', origin);
+        if (!origin) return callback(null, true);
         if (allowedOrigins.includes(origin)) return callback(null, true);
+        console.log('CORS blocked origin:', origin);
         return callback(new Error('CORS policy: Origin not allowed'));
     },
     credentials: true,
