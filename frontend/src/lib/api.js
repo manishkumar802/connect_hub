@@ -58,18 +58,14 @@ export const authAPI = {
     return api.get('/user/logout');
   },
   getProfile: (userId) => api.get(`/user/${userId}/profile`),
-  editProfile: (formData) => api.post('/user/profile/edit', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
-  }),
+  editProfile: (formData) => api.post('/user/profile/edit', formData),
   getSuggestedUsers: () => api.get('/user/suggested'),
   followUnfollow: (userId) => api.post(`/user/followorunfollow/${userId}`)
 };
 
 // Post APIs
 export const postAPI = {
-  createPost: (formData) => api.post('/post/addpost', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
-  }),
+  createPost: (formData) => api.post('/post/addpost', formData),
   getAllPosts: () => api.get('/post/all'),
   getUserPosts: () => api.get('/post/userpost/all'),
   likePost: (postId) => api.get(`/post/${postId}/like`),
