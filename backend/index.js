@@ -17,11 +17,18 @@ app.use(express.json({ limit: '10mb' }));
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:3000,http://localhost:5173,https://connect-hub-0rwk.onrender.com').split(',');
+
 const corsOptions = {
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    origin: (origin, callback) => {
+        if (!origin) return callback(null, true); // allow non-browser requests
+        if (allowedOrigins.includes(origin)) return callback(null, true);
+        return callback(new Error('CORS policy: Origin not allowed'));
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+    optionsSuccessStatus: 200
 }
 app.use(cors(corsOptions));
 

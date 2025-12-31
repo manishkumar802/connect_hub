@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8081';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const API_BASE_URL = `${BACKEND_URL}/api/v1`;
 
 // Create axios instance with default config

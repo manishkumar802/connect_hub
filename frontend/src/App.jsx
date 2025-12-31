@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import ChatPage from './components/ChatPage'
 import EditProfile from './components/EditProfile'
 import Home from './components/Home'
@@ -10,7 +10,7 @@ import Explore from './components/Explore'
 import Notifications from './components/Notifications'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { io } from "socket.io-client";
-import { useDispatch, useSelector } from 'react-redux'
+import { useDispatch } from 'react-redux'
 import { setSocket } from './redux/socketSlice'
 import { setOnlineUsers } from './redux/chatSlice'
 import { setLikeNotification } from './redux/rtnSlice'
@@ -60,34 +60,47 @@ const browserRouter = createBrowserRouter([
 
 function App() {
   const { user } = useSelector(store => store.auth);
-  const { socket } = useSelector(store => store.socketio);
   const dispatch = useDispatch();
+  const socketRef = useRef(null);
 
   useEffect(() => {
-    if (user) {
-      const socketio = io(import.meta.env.VITE_BACKEND_URL || 'http://localhost:8081', {
-        query: {
-          userId: user?._id
-        },
-        transports: ['websocket']
-      });
-      dispatch(setSocket(socketio));
-
-      // listen all the events
-      socketio.on('getOnlineUsers', (onlineUsers) => {
-        dispatch(setOnlineUsers(onlineUsers));
-      });
-
-      socketio.on('notification', (notification) => {
-        dispatch(setLikeNotification(notification));
-      });
-
-      return () => {
-        socketio.close();
+    // If no user, ensure any existing socket is closed
+    if (!user) {
+      if (socketRef.current) {
+        socketRef.current.close();
+        socketRef.current = null;
         dispatch(setSocket(null));
       }
-    } else if (socket) {
-      socket.close();
+      return;
+    }
+
+    // If already connected, do nothing
+    if (socketRef.current) return;
+
+    const socketio = io(import.meta.env.VITE_BACKEND_URL || 'http://localhost:8081', {
+      query: {
+        userId: user?._id
+      },
+      transports: ['websocket']
+    });
+
+    socketRef.current = socketio;
+    dispatch(setSocket(socketio));
+
+    // listeners
+    socketio.on('getOnlineUsers', (onlineUsers) => {
+      dispatch(setOnlineUsers(onlineUsers));
+    });
+
+    socketio.on('notification', (notification) => {
+      dispatch(setLikeNotification(notification));
+    });
+
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.close();
+        socketRef.current = null;
+      }
       dispatch(setSocket(null));
     }
   }, [user, dispatch]);

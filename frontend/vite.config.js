@@ -13,12 +13,16 @@ export default defineConfig({
   },
   server: {
     port: 3000,
+    watch: {
+      ignored: ['**/backend/**', '**/.git/**', '**/node_modules/**', '**/dist/**', '**/*.log', '**/OneDrive/**']
+    },
     proxy: {
       '/api': {
-        target: 'http://localhost:8080',
+        target: 'http://localhost:8081',
         changeOrigin: true,
         secure: false,
       },
     },
+    hmr: { overlay: false },
   },
 })

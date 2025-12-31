@@ -5,9 +5,11 @@ import http from "http";
 const app = express();
 const server = http.createServer(app);
 
+const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:3000,http://localhost:5173,https://connect-hub-0rwk.onrender.com').split(',');
+
 const io = new Server(server, {
     cors: {
-        origin: process.env.FRONTEND_URL || "http://localhost:3000",
+        origin: allowedOrigins,
         methods: ['GET', 'POST']
     }
 });
