@@ -97,15 +97,11 @@ export const login = async (req, res) => {
             posts: populatedPosts
         };
 
-        return res.cookie('token', token, { 
-            httpOnly: true, 
-            sameSite: 'none', 
-            maxAge: 1 * 24 * 60 * 60 * 1000,
-            secure: true
-        }).json({
+        return res.json({
             message: `Welcome back ${user.username}`,
             success: true,
-            user
+            user,
+            token
         });
 
     } catch (error) {
@@ -119,11 +115,7 @@ export const login = async (req, res) => {
 
 export const logout = async (_, res) => {
     try {
-        return res.clearCookie("token", {
-            httpOnly: true,
-            sameSite: 'none',
-            secure: true
-        }).json({
+        return res.json({
             message: 'Logged out successfully.',
             success: true
         });

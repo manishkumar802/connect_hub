@@ -3,6 +3,9 @@ import axios from 'axios';
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const API_BASE_URL = `${BACKEND_URL}/api/v1`;
 
+// Get token from localStorage
+const getToken = () => localStorage.getItem('token');
+
 // Create axios instance with default config
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -12,9 +15,13 @@ const api = axios.create({
   },
 });
 
-// Request interceptor
+// Request interceptor to add token
 api.interceptors.request.use(
   (config) => {
+    const token = getToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
   (error) => {
@@ -28,8 +35,10 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    // Remove automatic redirect to prevent loops
-    console.error('API Error:', error.response?.status, error.message);
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+    }
     return Promise.reject(error);
   }
 );
@@ -37,8 +46,17 @@ api.interceptors.response.use(
 // Auth APIs
 export const authAPI = {
   register: (userData) => api.post('/user/register', userData),
-  login: (credentials) => api.post('/user/login', credentials),
-  logout: () => api.get('/user/logout'),
+  login: async (credentials) => {
+    const response = await api.post('/user/login', credentials);
+    if (response.data.token) {
+      localStorage.setItem('token', response.data.token);
+    }
+    return response;
+  },
+  logout: () => {
+    localStorage.removeItem('token');
+    return api.get('/user/logout');
+  },
   getProfile: (userId) => api.get(`/user/${userId}/profile`),
   editProfile: (formData) => api.post('/user/profile/edit', formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
