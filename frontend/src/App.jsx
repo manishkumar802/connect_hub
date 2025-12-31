@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import ChatPage from './components/ChatPage'
 import EditProfile from './components/EditProfile'
 import Home from './components/Home'
@@ -62,8 +62,16 @@ function App() {
   const { user } = useSelector(store => store.auth);
   const dispatch = useDispatch();
   const socketRef = useRef(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
+    // Mark as initialized after first render
+    setIsInitialized(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isInitialized) return;
+    
     // If no user, ensure any existing socket is closed
     if (!user) {
       if (socketRef.current) {
@@ -103,11 +111,13 @@ function App() {
       }
       dispatch(setSocket(null));
     }
-  }, [user, dispatch]);
+  }, [user, dispatch, isInitialized]);
 
   return (
     <>
-      <RouterProvider router={browserRouter} />
+      <div className="min-h-screen">
+        <RouterProvider router={browserRouter} />
+      </div>
     </>
   )
 }

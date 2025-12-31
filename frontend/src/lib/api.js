@@ -28,10 +28,8 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    if (error.response?.status === 401 && !window.location.pathname.includes('/login')) {
-      // Only redirect if not already on login page
-      window.location.href = '/login';
-    }
+    // Remove automatic redirect to prevent loops
+    console.error('API Error:', error.response?.status, error.message);
     return Promise.reject(error);
   }
 );

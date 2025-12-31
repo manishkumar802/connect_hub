@@ -26,6 +26,17 @@ const SuggestedUsers = () => {
             setLoading(prev => ({ ...prev, [userId]: false }));
         }
     };
+    
+    if (!suggestedUsers || suggestedUsers.length === 0) {
+        return (
+            <div className='my-10'>
+                <div className='flex items-center justify-between text-sm'>
+                    <h1 className='font-semibold text-gray-600'>Suggested for you</h1>
+                </div>
+                <p className='text-gray-500 text-sm mt-4'>No suggestions available</p>
+            </div>
+        );
+    }
     return (
         <div className='my-10'>
             <div className='flex items-center justify-between text-sm'>
