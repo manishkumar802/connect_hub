@@ -37,9 +37,12 @@ const CreatePost = ({ open, setOpen }) => {
       setLoading(true);
       const res = await postAPI.createPost(formData);
       if (res.data.success) {
-        dispatch(setPosts([res.data.post, ...posts]));// [1] -> [1,2] -> total element = 2
+        dispatch(setPosts([res.data.post, ...posts]));
         toast.success(res.data.message);
         setOpen(false);
+        setCaption("");
+        setImagePreview("");
+        setFile("");
       }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to create post');
