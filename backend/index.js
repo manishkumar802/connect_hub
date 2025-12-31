@@ -17,7 +17,12 @@ app.use(express.json({ limit: '10mb' }));
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:3000,http://localhost:5173,https://connect-hub-0rwk.onrender.com').split(',');
+const allowedOrigins = [
+    'http://localhost:3000',
+    'http://localhost:5173', 
+    'https://connecthub-socialmedia.netlify.app',
+    'https://connect-hub-0rwk.onrender.com'
+];
 
 const corsOptions = {
     origin: (origin, callback) => {
