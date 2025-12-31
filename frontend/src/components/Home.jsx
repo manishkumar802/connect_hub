@@ -9,12 +9,14 @@ const Home = () => {
     useGetAllPost();
     useGetSuggestedUsers();
     return (
-        <div className='flex'>
+        <div className='flex flex-col lg:flex-row'>
             <div className='flex-grow'>
                 <Feed />
                 <Outlet />
             </div>
-            <RightSidebar />
+            <div className='hidden lg:block'>
+                <RightSidebar />
+            </div>
         </div>
     )
 }
