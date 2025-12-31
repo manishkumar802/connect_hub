@@ -86,16 +86,32 @@ function App() {
     if (socketRef.current) return;
 
     const socketio = io(import.meta.env.VITE_BACKEND_URL || 'http://localhost:8081', {
+      auth: { token: localStorage.getItem('token') },
       query: {
         userId: user?._id
       },
-      transports: ['websocket']
+      transports: ['websocket', 'polling'],
+      withCredentials: true,
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 1000
     });
 
     socketRef.current = socketio;
     dispatch(setSocket(socketio));
 
     // listeners
+    socketio.on('connect', () => {
+      console.log('Socket connected', socketio.id, 'transport:', socketio.io.engine.transport.name);
+    });
+
+    socketio.on('connect_error', (err) => {
+      console.error('Socket connect_error', err?.message || err);
+    });
+
+    socketio.on('reconnect_attempt', (attempt) => {
+      console.log('Socket reconnect attempt', attempt);
+    });
+
     socketio.on('getOnlineUsers', (onlineUsers) => {
       dispatch(setOnlineUsers(onlineUsers));
     });
