@@ -151,7 +151,9 @@ export const editProfile = async (req, res) => {
         const { bio, gender } = req.body;
         const profilePhoto = req.file;
         
-        console.log('Edit profile request:', { userId, bio, gender, hasFile: !!profilePhoto });
+        console.log('Edit profile - userId:', userId);
+        console.log('Edit profile - body:', { bio, gender });
+        console.log('Edit profile - file:', profilePhoto ? 'File received' : 'No file');
 
         const user = await User.findById(userId).select('-password');
         if (!user) {
@@ -168,28 +170,26 @@ export const editProfile = async (req, res) => {
         // Handle profile picture upload
         if (profilePhoto) {
             try {
+                console.log('Processing file upload...');
                 const fileUri = getDataUri(profilePhoto);
-                console.log('Uploading to cloudinary...');
-                const cloudResponse = await cloudinary.uploader.upload(fileUri.content, {
-                    folder: 'profile_pictures',
-                    transformation: [
-                        { width: 400, height: 400, crop: 'fill' },
-                        { quality: 'auto' }
-                    ]
+                console.log('File URI created, uploading to cloudinary...');
+                
+                const cloudResponse = await cloudinary.uploader.upload(fileUri, {
+                    folder: 'profile_pictures'
                 });
+                
                 user.profilePicture = cloudResponse.secure_url;
-                console.log('Profile picture uploaded:', cloudResponse.secure_url);
+                console.log('Profile picture uploaded successfully');
             } catch (uploadError) {
-                console.error('Cloudinary upload error:', uploadError);
+                console.error('Upload error:', uploadError);
                 return res.status(500).json({
-                    message: 'Failed to upload image',
+                    message: 'Failed to upload image: ' + uploadError.message,
                     success: false
                 });
             }
         }
 
         await user.save();
-        console.log('Profile updated successfully');
 
         return res.status(200).json({
             message: 'Profile updated successfully',

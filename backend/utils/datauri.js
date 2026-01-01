@@ -14,11 +14,7 @@ const getDataUri = (file) => {
             throw new Error('File must have an extension');
         }
         
-        const result = parser.format(extName, file.buffer);
-        return {
-            content: result.content,
-            mimetype: result.mimetype
-        };
+        return parser.format(extName, file.buffer).content;
     } catch (error) {
         console.error('Error in getDataUri:', error);
         throw new Error(`Failed to process file: ${error.message}`);
