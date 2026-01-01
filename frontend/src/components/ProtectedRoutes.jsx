@@ -1,31 +1,41 @@
 import React, { useEffect, useState } from 'react'
-import { useSelector } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom';
+import { setAuthUser } from '@/redux/authSlice';
 
 const ProtectedRoutes = ({children}) => {
     const {user} = useSelector(store=>store.auth);
     const navigate = useNavigate();
-    const [isLoading, setIsLoading] = useState(true);
+    const dispatch = useDispatch();
+    const [isChecking, setIsChecking] = useState(true);
     
     useEffect(() => {
-        // Check for token in localStorage
-        const token = localStorage.getItem('token');
-        
-        const timer = setTimeout(() => {
-            if (!user && !token) {
+        const checkAuth = () => {
+            const token = localStorage.getItem('token');
+            
+            if (token && !user) {
+                // Token exists but user not in Redux, keep user logged in
+                setIsChecking(false);
+                return;
+            }
+            
+            if (!token && !user) {
                 navigate("/login", { replace: true });
             }
-            setIsLoading(false);
-        }, 50);
+            
+            setIsChecking(false);
+        };
         
-        return () => clearTimeout(timer);
-    }, [user, navigate]);
+        checkAuth();
+    }, [user, navigate, dispatch]);
     
-    if (isLoading) {
-        return null; // Prevent flash
+    // Don't render anything while checking to prevent flash
+    if (isChecking) {
+        return <div style={{visibility: 'hidden'}}>{children}</div>;
     }
     
-    return user || localStorage.getItem('token') ? <>{children}</> : null;
+    // Show content if user exists OR token exists
+    return (user || localStorage.getItem('token')) ? children : null;
 }
 
 export default ProtectedRoutes;

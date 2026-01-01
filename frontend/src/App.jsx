@@ -62,17 +62,17 @@ function App() {
   const { user } = useSelector(store => store.auth);
   const dispatch = useDispatch();
   const socketRef = useRef(null);
-  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    // Mark as initialized after first render
-    setIsInitialized(true);
-  }, []);
+    // Auto-login if token exists but user not in Redux
+    const token = localStorage.getItem('token');
+    if (token && !user) {
+      // Token exists, user should be logged in
+      // Let the API calls handle authentication
+    }
+  }, [user]);
 
   useEffect(() => {
-    if (!isInitialized) return;
-    
-    // If no user, ensure any existing socket is closed
     if (!user) {
       if (socketRef.current) {
         socketRef.current.close();
@@ -82,35 +82,17 @@ function App() {
       return;
     }
 
-    // If already connected, do nothing
     if (socketRef.current) return;
 
     const socketio = io(import.meta.env.VITE_BACKEND_URL || 'http://localhost:8081', {
       auth: { token: localStorage.getItem('token') },
-      query: {
-        userId: user?._id
-      },
+      query: { userId: user?._id },
       transports: ['websocket', 'polling'],
-      withCredentials: true,
-      reconnectionAttempts: Infinity,
-      reconnectionDelay: 1000
+      withCredentials: true
     });
 
     socketRef.current = socketio;
     dispatch(setSocket(socketio));
-
-    // listeners
-    socketio.on('connect', () => {
-      console.log('Socket connected', socketio.id, 'transport:', socketio.io.engine.transport.name);
-    });
-
-    socketio.on('connect_error', (err) => {
-      console.error('Socket connect_error', err?.message || err);
-    });
-
-    socketio.on('reconnect_attempt', (attempt) => {
-      console.log('Socket reconnect attempt', attempt);
-    });
 
     socketio.on('getOnlineUsers', (onlineUsers) => {
       dispatch(setOnlineUsers(onlineUsers));
@@ -127,7 +109,7 @@ function App() {
       }
       dispatch(setSocket(null));
     }
-  }, [user, dispatch, isInitialized]);
+  }, [user, dispatch]);
 
   return (
     <>

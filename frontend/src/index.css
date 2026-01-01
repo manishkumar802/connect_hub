@@ -12,6 +12,11 @@
       font-size: 16px;
     }
   }
+  
+  /* Prevent flash of unstyled content */
+  body {
+    visibility: visible !important;
+  }
 }
 
 @layer utilities {
@@ -23,6 +28,12 @@
   .mobile-viewport {
     min-height: 100vh;
     min-height: -webkit-fill-available;
+  }
+  
+  /* Prevent layout shift */
+  .no-flash {
+    opacity: 1 !important;
+    visibility: visible !important;
   }
 }
 

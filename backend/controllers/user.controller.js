@@ -149,13 +149,9 @@ export const editProfile = async (req, res) => {
     try {
         const userId = req.id;
         const { bio, gender } = req.body;
-        const profilePicture = req.file;
-        let cloudResponse;
-
-        if (profilePicture) {
-            const fileUri = getDataUri(profilePicture);
-            cloudResponse = await cloudinary.uploader.upload(fileUri);
-        }
+        const profilePhoto = req.file;
+        
+        console.log('Edit profile request:', { userId, bio, gender, hasFile: !!profilePhoto });
 
         const user = await User.findById(userId).select('-password');
         if (!user) {
@@ -165,22 +161,46 @@ export const editProfile = async (req, res) => {
             });
         }
 
-        if (bio) user.bio = bio;
+        // Update bio and gender
+        if (bio !== undefined) user.bio = bio;
         if (gender) user.gender = gender;
-        if (profilePicture) user.profilePicture = cloudResponse.secure_url;
+
+        // Handle profile picture upload
+        if (profilePhoto) {
+            try {
+                const fileUri = getDataUri(profilePhoto);
+                console.log('Uploading to cloudinary...');
+                const cloudResponse = await cloudinary.uploader.upload(fileUri.content, {
+                    folder: 'profile_pictures',
+                    transformation: [
+                        { width: 400, height: 400, crop: 'fill' },
+                        { quality: 'auto' }
+                    ]
+                });
+                user.profilePicture = cloudResponse.secure_url;
+                console.log('Profile picture uploaded:', cloudResponse.secure_url);
+            } catch (uploadError) {
+                console.error('Cloudinary upload error:', uploadError);
+                return res.status(500).json({
+                    message: 'Failed to upload image',
+                    success: false
+                });
+            }
+        }
 
         await user.save();
+        console.log('Profile updated successfully');
 
         return res.status(200).json({
-            message: 'Profile updated.',
+            message: 'Profile updated successfully',
             success: true,
             user
         });
 
     } catch (error) {
-        console.log(error);
+        console.error('Edit profile error:', error);
         return res.status(500).json({
-            message: "Internal server error",
+            message: error.message || "Internal server error",
             success: false
         });
     }
